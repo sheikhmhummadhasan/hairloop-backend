@@ -24,6 +24,8 @@ const db = client.db("hairloop");
 const userColl = db.collection("roles");
 const companyColl = db.collection("company");
 const applicationColl = db.collection("applications");
+const savedJobsColl = db.collection("savedJobs");
+const paymentHistoryColl = db.collection("paymentHistory");
 
 const run = async () => {
   try {
@@ -32,8 +34,6 @@ const run = async () => {
     // TODO:when backend is deployment this line going to commet
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment!!!!");
-
-
 
     // GET ROLE DATA
     app.get("/role", async (req, res) => {
@@ -101,8 +101,6 @@ const run = async () => {
       res.send(result);
     });
 
-
-
     // POST JOBS API
     app.post("/role", async (req, res) => {
       const data = req.body;
@@ -132,8 +130,6 @@ const run = async () => {
       res.send(result);
     });
 
-
-
     // COMAPNY DATA POST API
     app.post("/company", async (req, res) => {
       const data = req.body;
@@ -151,16 +147,14 @@ const run = async () => {
       const data = await companyColl.findOne({
         createdBY: id,
       });
-      res.send(data);
+      res.json(data);
     });
-
-
 
     // APPLICATIONS SUBMIT API
     app.post("/applications", async (req, res) => {
       const body = req.body;
       const data = await applicationColl.insertOne(body);
-      res.send(data)
+      res.send(data);
     });
     // APPLICATIONS GET DATA API
     app.get("/applications", async (req, res) => {
@@ -168,35 +162,157 @@ const run = async () => {
       res.send(data);
     });
 
+    // GET APPLICATION BY APPLICANT ID
+    app.get("/applications_get_by_appliID/:id", async (req, res) => {
+      const { id } = req.params;
+      const data = await applicationColl
+        .find({
+          applicantId: id,
+        })
+        .toArray();
+      res.send(data);
+    });
+
     // APPLICATIONS SUBMIT PENDING API
-    app.get("/applications/:id", async (req, res) => {
-      const {id} = req.params;
-      const data = await applicationColl.find({
-        applicantId:id,
-        status:"pending",
-      }).toArray();
-      res.send(data)
+    app.get("/applications_pending/:id", async (req, res) => {
+      const { id } = req.params;
+      const data = await applicationColl
+        .find({
+          applicantId: id,
+          status: "pending",
+        })
+        .toArray();
+      res.send(data);
     });
 
     // APPLICCATION REJECTION API
     app.get("/applications_rejection/:id", async (req, res) => {
-      const {id} = req.params;
-      const data = await applicationColl.find({
-        applicantId:id,
-        status:"rejected",
-      }).toArray();
-      res.send(data)
+      const { id } = req.params;
+      const data = await applicationColl
+        .find({
+          applicantId: id,
+          status: "rejected",
+        })
+        .toArray();
+      res.send(data);
     });
 
-    // APPLICCATION SELECTION API
-    app.get("/applications_selection/:id", async (req, res) => {
-      const {id} = req.params;
-      const data = await applicationColl.find({
-        applicantId:id,
-        status:"selection",
-      }).toArray();
-      res.send(data)
+    // APPLICATION FIND BY MY COMPANY ID
+    app.get("/applications_jobid/:id", async (req, res) => {
+      const { id } = req.params;
+
+      const jobs = await userColl
+        .find({
+          createdBY: id,
+        })
+        .toArray();
+
+      const jobIds = jobs.map((e) => e._id.toString());
+
+      const applications = await applicationColl
+        .find({
+          jobId: { $in: jobIds },
+        })
+        .toArray();
+
+      res.send(applications);
     });
+
+    // APPLICATION UPDATE STATUS BY RECRUTER
+    app.patch("/application_status/:id", async (req, res) => {
+      const { id } = req.params;
+      const { status } = req.body;
+      const query = {
+        _id: new ObjectId(id),
+      };
+      // console.log(status)
+      const moire = {
+        $set: {
+          status: status,
+        },
+      };
+      const result = await applicationColl.updateOne(query, moire);
+      res.send(result);
+    });
+
+    // APPLICATION OFFERD API GOT FOR SEEKER
+    app.get("/application_offerd/:id", async (req, res) => {
+      const { id } = req.params;
+      const data = await applicationColl
+        .find({
+          applicantId: id,
+          status: "offered",
+        })
+        .toArray();
+      res.send(data);
+    });
+
+    // GET SAVED JOBS BY USER ID
+    app.get("/getsavedjobs/:id", async (req, res) => {
+      const { id } = req.params;
+      const data = await savedJobsColl
+        .find({
+          usersID: id,
+        })
+        .toArray();
+      res.send(data);
+    });
+
+    // SAVE JOBS POST
+    app.post("/getsavedjobs", async (req, res) => {
+      const body = req.body;
+      const data = await savedJobsColl.insertOne(body);
+      res.send(data);
+    });
+
+    // SAVED JOBS DELETE API
+    app.delete("/getsavedjobs/:id", async (req, res) => {
+      const { id } = req.params;
+      const data = await savedJobsColl.deleteOne({
+        _id: new ObjectId(id),
+      });
+      res.send(data);
+    });
+
+    // SAVED JOB OPRATION
+    // app.patch('/getsavedjobs/:id', async(req, res) => {
+    //   const {id} = req.params;
+    //   const {saved} = req.body;
+    //   const quiry = {
+    //     _id: new ObjectId(id)
+    //   }
+    //   const moire = {
+    //     $set:{
+    //       saved:saved
+    //     }
+    //   }
+    //   const data = await userColl.updateOne(quiry, moire);
+    //   res.send(data);
+    // })
+
+    // PAYMENT HISTY POST AND WATCH
+    app.post("/paymentHistory", async (req, res) => {
+      try {
+        const data = req.body;
+
+        const result = await paymentHistoryColl.insertOne(data);
+
+        res.send(result);
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: "Payment history insert failed" });
+      }
+    });
+
+    // GOT ALL PAYMENT HISTORY
+    app.get("/paymentHistory/:id", async (req, res) => {
+      const {id} = req.params
+      const data = await paymentHistoryColl.find({
+        userData: id
+      }).toArray();
+      res.json(data);
+    });
+
   } finally {
     // await client.close()
   }
