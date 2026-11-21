@@ -54,25 +54,25 @@ const run = async () => {
         return res.status(401).send({ message: "unauthorized access" });
       }
 
-      const query = {token : token};
-      const session = await sessionColl.findOne(query)
+      const query = { token: token };
+      const session = await sessionColl.findOne(query);
       const userId = session.userId;
       const userQuiry = {
-        _id : userId
-      }
-      const User = await UserColl.findOne(userQuiry)
-      console.log(User)
+        _id: userId,
+      };
+      const User = await UserColl.findOne(userQuiry);
+      console.log(User);
       req.user = User;
       next();
     };
 
     // verifySeeker
     const verifySeeker = async (req, res, next) => {
-      if(req.user?.role !== 'seeker'){
-        return res.status(403).send({message: 'forbiddenn access'})
+      if (req.user?.role !== "seeker") {
+        return res.status(403).send({ message: "forbiddenn access" });
       }
-      next()
-    } 
+      next();
+    };
 
     // GET ROLE DATA
     app.get("/role", async (req, res) => {
@@ -330,7 +330,7 @@ const run = async () => {
     // })
 
     // PAYMENT HISTY POST AND WATCH
-     app.post("/paymentHistory", async (req, res) => {
+    app.post("/paymentHistory", async (req, res) => {
       try {
         const data = req.body;
 
@@ -345,10 +345,12 @@ const run = async () => {
 
     // GOT ALL PAYMENT HISTORY
     app.get("/paymentHistory/:id", async (req, res) => {
-      const {id} = req.params
-      const data = await paymentHistoryColl.find({
-        userData: id
-      }).toArray();
+      const { id } = req.params;
+      const data = await paymentHistoryColl
+        .find({
+          userData: id,
+        })
+        .toArray();
       res.json(data);
     });
 
