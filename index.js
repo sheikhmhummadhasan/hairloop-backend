@@ -7,6 +7,11 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT;
 
+const logger = (req, res, next) => {
+  console.log("loger midelwere loger log", req.params);
+  next();
+};
+
 app.use(cors());
 app.use(express.json());
 
@@ -26,6 +31,8 @@ const companyColl = db.collection("company");
 const applicationColl = db.collection("applications");
 const savedJobsColl = db.collection("savedJobs");
 const paymentHistoryColl = db.collection("paymentHistory");
+const sessionColl = db.collection("session");
+const UserColl = db.collection("user");
 
 const run = async () => {
   try {
@@ -34,6 +41,38 @@ const run = async () => {
     // TODO:when backend is deployment this line going to commet
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment!!!!");
+
+    // verifycation realted
+    const verifyToken = async (req, res, next) => {
+      const authheader = req.headers.authorization;
+      if (!authheader) {
+        return res.status(401).send({ message: "unauthorization access" });
+      }
+
+      const token = authheader?.split(" ")[1];
+      if (!token) {
+        return res.status(401).send({ message: "unauthorized access" });
+      }
+
+      const query = {token : token};
+      const session = await sessionColl.findOne(query)
+      const userId = session.userId;
+      const userQuiry = {
+        _id : userId
+      }
+      const User = await UserColl.findOne(userQuiry)
+      console.log(User)
+      req.user = User;
+      next();
+    };
+
+    // verifySeeker
+    const verifySeeker = async (req, res, next) => {
+      if(req.user?.role !== 'seeker'){
+        return res.status(403).send({message: 'forbiddenn access'})
+      }
+      next()
+    } 
 
     // GET ROLE DATA
     app.get("/role", async (req, res) => {
@@ -79,7 +118,7 @@ const run = async () => {
       res.send(data);
     });
     // GET ROLE BY USERid and DELETE
-    app.delete("/role_data/:userID", async (req, res) => {
+    app.delete("/role_data/:userID", verifyToken, async (req, res) => {
       const { userID } = req.params;
       const result = await userColl.deleteOne({
         _id: new ObjectId(userID),
@@ -291,7 +330,7 @@ const run = async () => {
     // })
 
     // PAYMENT HISTY POST AND WATCH
-    app.post("/paymentHistory", async (req, res) => {
+     app.post("/paymentHistory", async (req, res) => {
       try {
         const data = req.body;
 
