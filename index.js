@@ -80,7 +80,7 @@ const run = async () => {
       res.send(data);
     });
     // GET ROLE DETAIL
-    app.get("/role/:id", async (req, res) => {
+    app.get("/role/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const data = await userColl.findOne({
         _id: new ObjectId(id),
@@ -89,14 +89,14 @@ const run = async () => {
       res.send(data);
     });
     // GET ROLE BY USERid
-    app.get("/role_data/:userID", async (req, res) => {
+    app.get("/role_data/:userID", verifyToken, async (req, res) => {
       const { userID } = req.params;
       const result = await userColl.find({ createdBY: userID }).toArray();
       // console.log({userID, result})
       res.send(result);
     });
     // GET ROLE AND GET USER VERYFIDE BADGE
-    app.get("/role_veryfy/:id", async (req, res) => {
+    app.get("/role_veryfy/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const data = await userColl
         .find({
@@ -107,7 +107,7 @@ const run = async () => {
       res.send(data);
     });
     // ACTIVE JOBS API
-    app.get("/role_veryfying/:id", async (req, res) => {
+    app.get("/role_veryfying/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const data = await userColl
         .find({
@@ -126,7 +126,7 @@ const run = async () => {
       res.send(result);
     });
     // UPADTE ROLE BU USER ID
-    app.patch("/role_data/:userID", async (req, res) => {
+    app.patch("/role_data/:userID", verifyToken, async (req, res) => {
       const { userID } = req.params;
       const query = {
         _id: new ObjectId(userID),
@@ -141,14 +141,14 @@ const run = async () => {
     });
 
     // POST JOBS API
-    app.post("/role", async (req, res) => {
+    app.post("/role", verifyToken, async (req, res) => {
       const data = req.body;
       console.log(data);
       const result = await userColl.insertOne(data);
       res.send(result);
     });
     // DELETE JOBS API
-    app.delete("/role/:id", async (req, res) => {
+    app.delete("/role/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const result = await userColl.deleteOne({
         _id: new ObjectId(id),
@@ -156,12 +156,12 @@ const run = async () => {
       res.send(result);
     });
     // JOBS GET DATA API
-    app.get("/jobs", async (req, res) => {
+    app.get("/jobs", verifyToken, async (req, res) => {
       const data = await jobsColl.find().toArray();
       res.send(data);
     });
     // JOBS GET BY ID
-    app.get("/jobs/:id", async (req, res) => {
+    app.get("/jobs/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const result = await jobsColl.findOne({
         _id: new ObjectId(id),
@@ -170,18 +170,18 @@ const run = async () => {
     });
 
     // COMAPNY DATA POST API
-    app.post("/company", async (req, res) => {
+    app.post("/company", verifyToken, async (req, res) => {
       const data = req.body;
       const result = await companyColl.insertOne(data);
       res.send(result);
     });
     // COMPANY DATA GET API
-    app.get("/company", async (req, res) => {
+    app.get("/company", verifyToken, async (req, res) => {
       const data = await companyColl.find().toArray();
       res.send(data);
     });
     // GET COMPANY DATA BY ID API
-    app.get("/company/:id", async (req, res) => {
+    app.get("/company/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const data = await companyColl.findOne({
         createdBY: id,
@@ -190,19 +190,19 @@ const run = async () => {
     });
 
     // APPLICATIONS SUBMIT API
-    app.post("/applications", async (req, res) => {
+    app.post("/applications", verifyToken, async (req, res) => {
       const body = req.body;
       const data = await applicationColl.insertOne(body);
       res.send(data);
     });
     // APPLICATIONS GET DATA API
-    app.get("/applications", async (req, res) => {
+    app.get("/applications", verifyToken, async (req, res) => {
       const data = await applicationColl.find().toArray();
       res.send(data);
     });
 
     // GET APPLICATION BY APPLICANT ID
-    app.get("/applications_get_by_appliID/:id", async (req, res) => {
+    app.get("/applications_get_by_appliID/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const data = await applicationColl
         .find({
@@ -213,7 +213,7 @@ const run = async () => {
     });
 
     // APPLICATIONS SUBMIT PENDING API
-    app.get("/applications_pending/:id", async (req, res) => {
+    app.get("/applications_pending/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const data = await applicationColl
         .find({
@@ -225,7 +225,7 @@ const run = async () => {
     });
 
     // APPLICCATION REJECTION API
-    app.get("/applications_rejection/:id", async (req, res) => {
+    app.get("/applications_rejection/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const data = await applicationColl
         .find({
@@ -237,7 +237,7 @@ const run = async () => {
     });
 
     // APPLICATION FIND BY MY COMPANY ID
-    app.get("/applications_jobid/:id", async (req, res) => {
+    app.get("/applications_jobid/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
 
       const jobs = await userColl
@@ -258,7 +258,7 @@ const run = async () => {
     });
 
     // APPLICATION UPDATE STATUS BY RECRUTER
-    app.patch("/application_status/:id", async (req, res) => {
+    app.patch("/application_status/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const { status } = req.body;
       const query = {
@@ -275,7 +275,7 @@ const run = async () => {
     });
 
     // APPLICATION OFFERD API GOT FOR SEEKER
-    app.get("/application_offerd/:id", async (req, res) => {
+    app.get("/application_offerd/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const data = await applicationColl
         .find({
@@ -287,7 +287,7 @@ const run = async () => {
     });
 
     // GET SAVED JOBS BY USER ID
-    app.get("/getsavedjobs/:id", async (req, res) => {
+    app.get("/getsavedjobs/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const data = await savedJobsColl
         .find({
@@ -298,14 +298,14 @@ const run = async () => {
     });
 
     // SAVE JOBS POST
-    app.post("/getsavedjobs", async (req, res) => {
+    app.post("/getsavedjobs", verifyToken, async (req, res) => {
       const body = req.body;
       const data = await savedJobsColl.insertOne(body);
       res.send(data);
     });
 
     // SAVED JOBS DELETE API
-    app.delete("/getsavedjobs/:id", async (req, res) => {
+    app.delete("/getsavedjobs/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const data = await savedJobsColl.deleteOne({
         _id: new ObjectId(id),
@@ -330,7 +330,7 @@ const run = async () => {
     // })
 
     // PAYMENT HISTY POST AND WATCH
-    app.post("/paymentHistory", async (req, res) => {
+    app.post("/paymentHistory", verifyToken, async (req, res) => {
       try {
         const data = req.body;
 
@@ -344,7 +344,7 @@ const run = async () => {
     });
 
     // GOT ALL PAYMENT HISTORY
-    app.get("/paymentHistory/:id", async (req, res) => {
+    app.get("/paymentHistory/:id", verifyToken, async (req, res) => {
       const { id } = req.params;
       const data = await paymentHistoryColl
         .find({
